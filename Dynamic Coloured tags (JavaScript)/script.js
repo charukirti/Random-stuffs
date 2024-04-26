@@ -5,6 +5,11 @@
 const inputElement = document.querySelector('input');
 const tagsElement = document.querySelector('.tags');
 
+
+let tagsArray = [];
+
+document.addEventListener('DOMContentLoaded', getTags);
+
 // colors array 
 let colors = [
     { background: "rgb(255,240,246)", text: "rgb(192, 75, 143)" },
@@ -57,10 +62,15 @@ document.addEventListener('keyup', (e) => {
             tagsElement.append(tagElement);
 
 
+
             /* Adding tag removal functionality */
 
             close.addEventListener('click', () => {
                 tagElement.remove();
+
+                tagsArray.filter(tag => tag !== inputElement.value);
+
+                localStorage.setItem('tags', JSON.stringify(tagsArray));
             });
 
 
@@ -70,6 +80,59 @@ document.addEventListener('keyup', (e) => {
             tagElement.style.color = colorValue.text;
             tagElement.style.backgroundColor = colorValue.background;
 
+            /* Saving tag in a local storage */
+
+            tagsArray.push(inputElement.value);
+
+            localStorage.setItem('tags', JSON.stringify(tagsArray));
+
+            inputElement.value = '';
+
         }
     }
 });
+
+
+// function to render tags from local storage
+
+function getTags() {
+    const storedTags = localStorage.getItem('tags');
+
+    if (storedTags) {
+        tagsArray = JSON.parse(storedTags);
+        renderTags();
+    }
+}
+
+function renderTags() {
+    tagsElement.innerHTML = '';
+
+    tagsArray.forEach((tag) => {
+        const tagElement = document.createElement('div');
+
+        tagElement.className = 'tag';
+
+        tagElement.insertAdjacentHTML("beforeend", tag);
+
+        const close = document.createElement('span');
+
+        close.className = 'material-icons';
+        close.innerHTML = 'close';
+
+        tagElement.insertAdjacentElement("beforeend", close);
+
+        let colorValue = colors[Math.floor(Math.random() * colors.length)];
+        tagElement.style.color = colorValue.text;
+        tagElement.style.backgroundColor = colorValue.background;
+
+        tagsElement.append(tagElement);
+
+        close.addEventListener('click', () => {
+            const tagToRemove = inputElement.value;
+            tagsArray = tagsArray.filter(tag => tag !== tagToRemove);
+            localStorage.setItem('tags', JSON.stringify(tagsArray));
+            localStorage.removeItem(tagToRemove);
+            tagElement.remove();
+        });
+    });
+}
